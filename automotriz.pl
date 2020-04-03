@@ -6,7 +6,7 @@
 %   Botones, labels, y su posición dentro del dialog en pantalla.
 inicio:-
 %   Declaración
-	new(Menu, dialog('Diagnostico Automotriz', size(1000,800))),
+	new(Menu, dialog('Diagnostico Automotriz (Main Menu)', size(1000,1000))),
 	new(L,label(nombre,'DA-LJRP v1.00.09')),
 	new(@texto,label(nombre,'Realiza un nuevo diagnóstico para continuar')),
 	new(@boton,button('realizar diagnóstico',message(@prolog,botones))),
@@ -15,17 +15,25 @@ inicio:-
 	new(@respl,label(nombre,'')),
 
 %   Posicionamiento
+%   Se posicionaron dos elementos en x a 350 ya que el dialog no valida el size establecido, entonces esto alarga la ventana.
 	send(Menu,append(L)),new(@btncarrera,button('¿Diagnostico?')),
-	send(Menu,display,L,point(95,20)),
+	send(Menu,display,L,point(350,20)),
 	send(Menu,display,A,point(40,360)),
-	send(Menu,display,@boton,point(85,150)),
 	send(Menu,display,@texto,point(20,100)),
-	send(Menu,display,Salir,point(110,400)),
+	send(Menu,display,@boton,point(85,150)),
+	send(Menu,display,Salir,point(350,400)),
 	send(Menu,display,@respl,point(20,130)),
-	send(Menu,open_centered).
+	send(Menu,open).
 
 %   Soluciones a las fallas de acuerdo a los resultados del diagnóstico
-fallas('Realizar Cambio de Aceite:
+
+fallas('Cambio de Suspesión:
+        El cambio de suspesión debe ser realizado en un taller,
+        en el cual se deberá realizar el chequeo respectivo de
+        amortiguadores.
+        Esto es la razón también del desgaste anormal de llantas.'):-suspension,!.
+
+fallas('Cambio de Aceite:
 	1) Enciende el carro durante 5 o 10 minutos y luego apágalo.
 	2) Encuentra el tapón de vaciado de aceite (debajo del propio motor).
 	3) Situa un recipiente lo suficientemente grande debajo del tapón de vaciado (para no regar el aceite).
@@ -36,10 +44,6 @@ fallas('Realizar Cambio de Aceite:
 	8) Coloca de nuevo el tapón de vaciado.
 	9) Busca el tapón de llenado de aceite (encima del motor, dentro del capo)
 	10) LLena el deposito de aceite con aceite nuevo y limpio.'):-aceite,!.
-
-fallas('realizar una alineacion y balanceo:
-        la solucion para esto es llavar el auto a un taller
-        para que alinien y balancen las llantas del auto'):-suspension,!.
 
 fallas('verificar el estado actual de la bateria:
 	primero abra el cofre y ubique la bateria del coche
@@ -76,33 +80,36 @@ fallas('seguro subes demaciado el volumen:
 fallas('sin resultados! si los problemas persisten utilice un dispositivo
 	alienigena con mas ram y 12 nucleos cpu:/').
 
-% preguntas para resolver las fallas con su respectivo identificador de
+% Preguntas para resolver los posibles problemas o fallas.
 % falla
-aceite:- cambio_aceite,
-	pregunta('tienes problemas de motor?'),
-	pregunta('su automovil gasta mas combustible de lo debido?'),
-	pregunta('su motor se escucha muy ruidoso? '),
-	pregunta('tiene problemas para arrancar el veiculo en frio?'),
-	pregunta('siente que su motor tiene menos fuerza que antes? ').
-
-suspension:- alineacion_direccion,
-	pregunta('tienes problemas de la suspencion?'),
-	pregunta('tiene su volante neutral y el auto gira?'),
-	pregunta('ha notado que alguna llanta se desgasta mas? '),
-	pregunta('su volante se mueve bastante y tiembla?').
-
-electronico:- bateria_agotada,
-	pregunta('tienes problemas electricos?'),
-	pregunta('sus faros titilan o encienden con poca fuerza?'),
-	pregunta('el estereo no enciende?'),
-	pregunta('el auto emite un crack cuando lo enciende?'),
-	pregunta('el auto no enciende de ninguna manera?'),
-	pregunta('su bateria es muy vieja?').
+    %   Serie de preguntas
+suspension:- revision_suspension,
+	pregunta('¿Tiene problemas con sus frenos?'),
+	pregunta('¿Existe rebote excesivo del carro?'),
+	pregunta('¿Tiene su volante neutral y el auto gira?'),
+	pregunta('¿Existe un desgaste anormal de las llantas? '),
+	pregunta('¿El volante se mueve bastante y tiembla?').
 
 frenos:- cambio_frenos,
-	pregunta('tienes problemas con tus frenos?'),
-	pregunta('cuando frenas escuchas un chillido agudo?'),
-	pregunta('al frenar siente que tarda mas? ').
+	pregunta('¿Tiene problemas con sus frenos?'),
+	pregunta('Cuando se frena ¿El carro hace un chillido?'),
+	pregunta('¿Al frenar el carro demora en desacelerar? ').
+
+aceite:- cambio_aceite,
+	pregunta('¿Problemas de motor?'),
+	pregunta('¿Su carro gasta más gasolina de lo debido?'),
+	pregunta('¿El motor de su carro tiene menos fuerza que antes? '),
+	pregunta('¿Su motor se escucha muy ruidoso? '),
+	pregunta('¿Tiene problemas para arrancar el carro en frio?').
+
+electronico:- bateria_agotada,
+	pregunta('¿Problemas eléctricos?'),
+	pregunta('¿Los silvines alumbran con poca fuerza?'),
+	pregunta('¿El tablero no enciende?'),
+	pregunta('¿El carro hace un sonido crackeante cuando enciende?'),
+	pregunta('¿El auto no hace ningun tipo de sonido al girar la llave?'),
+	pregunta('¿La bocina del carro suena baja o no suena?').
+
 
 computadora:- check_egine,
 	pregunta('la luz check egine se encendio en tu tablero?'),
@@ -115,10 +122,10 @@ sonido:- cambio_bocina,
 
 %identificador de falla que dirige a las preguntas correspondientes
 
-cambio_aceite:-pregunta('tienes problemas de motor?'),!.
-alineacion_direccion:-pregunta('tienes problemas de la suspencion?'),!.
-bateria_agotada:-pregunta('tienes problemas electricos?'),!.
-cambio_frenos:-pregunta('tienes problemas con tus frenos?'),!.
+revision_suspension:-pregunta('¿Tiene problemas con sus frenos?'),!.
+cambio_frenos:-pregunta('¿Tiene problemas con sus frenos?'),!.
+cambio_aceite:-pregunta('¿Problemas de motor?'),!.
+bateria_agotada:-pregunta('¿Problemas electricos?'),!.
 cambio_bocina:-pregunta('tienes problemas con alguna bocina?'),!.
 check_egine:-pregunta('la luz check egine se encendio en tu tablero?'),!.
 
@@ -140,7 +147,7 @@ preguntar(Problema):- new(Di,dialog('Diagnostico mecanico')),
 	 send(Di,append(B2)),
 
 	 send(Di,default_button,si),
-	 send(Di,open_centered),get(Di,confirm,Answer),
+	 send(Di,open),get(Di,confirm,Answer),
 	 write(Answer),send(Di,destroy),
 	 ((Answer==si)->assert(si(Problema));
 	 assert(no(Problema)),fail).
